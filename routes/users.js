@@ -21,7 +21,7 @@ router.post('/', async(req, res) => {
     if(user) return res.status(400).send("The phone number already exist")
     if(req.body.email) {
         const user = await User.findOne({email: req.body.email})
-        if(user) return res.status(400).send("This email already exist")
+        if(user) return res.status(400).send("The email already exist")
     }
 
     user = new User(_.pick(req.body, ["name", "phone", "email", "password"]));
@@ -29,8 +29,9 @@ router.post('/', async(req, res) => {
     await user.save();
 
     const token = user.generateAuthToken();
-    res.header('x-auth-token', token)
-        .send(_.pick(user, ['name', 'email', 'phone']))
+    res.header("x-auth-token", token)
+        .header("Access-Control-Expose-Headers", "x-auth-token")
+        .send(_.pick(user, ['name', 'email', 'phone', '_id']))
     
 })
 
