@@ -2,6 +2,7 @@ const express = require('express');
 const products = require("../routes/products")
 const users = require('../routes/users')
 const auth = require('../routes/auth')
+const error = require("../middleware/error")
 const productCats = require("../routes/productCats")
 const cors = require('cors');
 
@@ -16,5 +17,5 @@ module.exports = function(app) {
     app.use('/api/productCats', productCats)
     app.use('/api/users', users);
     app.use('/api/auth', auth)
-
+    app.use(error)
 }

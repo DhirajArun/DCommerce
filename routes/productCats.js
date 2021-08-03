@@ -5,24 +5,16 @@ const _ = require('lodash')
 const router = express.Router();
 
 router.get('/', async(req, res) => {
-    try{
-        const cats = await ProductCat.find();
-        res.send(cats);
-    }
-    catch(ex){
-        res.status(404).send("invalid filter")
-    }
+
+    const cats = await ProductCat.find();
+    res.send(cats);
+ 
 })
 
 router.get('/:id', async(req, res)=>{
-    try{
-        const cats = await ProductCat.findOne({_id: req.params.id})
-        if(!cats) return res.status(404).send("no products cateogories found")
-        res.send(cats)
-    }
-    catch(ex){
-        
-    }
+    const cats = await ProductCat.findOne({_id: req.params.id})
+    if(!cats) return res.status(404).send("no products cateogories found")
+    res.send(cats)
 })
 
 
@@ -31,15 +23,9 @@ router.post('/', async (req, res) => {
     if(error) return res.status(400).send(error.details[0].message)
     const cat = new ProductCat(_.pick(req.body, ["name"]))
     
-    try{
-        await cat.save()
-        res.send(cat)
-    }
-    catch(ex){
-        res.send(400).send("invalid data")
-    }
-
-
+   
+    await cat.save()
+    res.send(cat)
 })
 
 router.put('/:id', async(req, res)=>{
@@ -53,14 +39,9 @@ router.put('/:id', async(req, res)=>{
 })
 
 router.delete('/:id', async(req, res)=>{
-    try{
-        const cat = await ProductCat.findByIdAndDelete(req.params.id)
-        if(!cat) return res.status(404).send("no such cateogory");
-        res.send(cat)
-    }
-    catch(ex){
-        
-    }
+    const cat = await ProductCat.findByIdAndDelete(req.params.id)
+    if(!cat) return res.status(404).send("no such cateogory");
+    res.send(cat)
 })
 
 
