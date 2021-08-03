@@ -38,12 +38,18 @@ router.post('/', async (req, res) => {
     catch(ex){
         res.send(400).send("invalid data")
     }
-
-
+    
+    
 })
 
-router.put('/:id', (req, res)=>{
+router.put('/:id', async(req, res)=>{
+    const {error} = validateProduct(req.body);
+    if(error) return res.status(400).send(error.details[0].message)
 
+
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {new: true})
+    if(!product) return res.status(404).send("no such product found!")
+    res.send(product)
 })
 
 router.delete('/:id', async(req, res)=>{

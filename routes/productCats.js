@@ -42,7 +42,13 @@ router.post('/', async (req, res) => {
 
 })
 
-router.put('/:id', (req, res)=>{
+router.put('/:id', async(req, res)=>{
+    const {error} = validateProductCat(req.body);
+    if(error) return res.status(400).send(error.details[0].message)
+
+    const productCat = await ProductCat.findByIdAndUpdate(req.params.id, req.body, {new: true})
+    if(!productCat) return res.status(404).send("no such product cateogory found!")
+    res.send(productCat)
 
 })
 
