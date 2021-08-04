@@ -1,5 +1,7 @@
+const winston = require('winston');
+
 module.exports = function(err, req, res, next){
-    //logging the error
+    winston.error(err.message, err);
 
     res.status(500).send("an unexpected error occured");
 }
