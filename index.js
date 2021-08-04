@@ -1,11 +1,12 @@
 const express = require("express");
 const winston = require("winston");
+// require("express-async-errors");
 
 const app = express();
 
+require("./startup/logging")();
 require("./startup/routes")(app);
 require("./startup/db")();
-require("./startup/logging")();
 
 const port = process.env.PORT || 3100;
 const server = app.listen(port, () =>
