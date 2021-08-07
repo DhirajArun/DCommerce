@@ -4,13 +4,52 @@ const _ = require("lodash");
 
 const router = express.Router();
 
+// filtering
+// sortBy
+// pagination
+// orderBy
+
 router.get("/", async (req, res, next) => {
-  try {
-    const products = await Product.find();
-    res.send(products);
-  } catch (ex) {
-    next(ex);
+  let products;
+
+  let filter = {};
+  let sortBy;
+  let orderBy = 1;
+  let pageSize = 20;
+  let pageNo = 1;
+
+  //filtering
+  if (req.query.cat) {
+    filter.cat = req.query.cat;
   }
+
+  //sorting
+  if (req.query.sortBy) {
+    sortBy = req.query.sortBy;
+  }
+
+  //orderBy
+  if (req.query.orderBy) {
+    orderBy = req.query.orderBy;
+  }
+
+  //pageSize
+  if (req.query.pageSize) {
+    pageSize = req.query.pageSize;
+  }
+
+  //pageNo
+  if (req.query.pageNo) {
+    pageNo = req.query.pageNo;
+  }
+
+  products = await Product.find(filter)
+    .sortBy({ [sortBy]: orderBy })
+    .skip((pageNo - 1) * pageSize)
+    .limit(pageSize)
+    .select("-__v");
+
+  res.send(products);
 });
 
 router.get("/:id", async (req, res, next) => {
