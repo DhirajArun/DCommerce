@@ -14,6 +14,7 @@ module.exports = function (app) {
     })
   );
   app.use(express.json());
+  app.use("/images", express.static("images/"));
   app.use("/api/products", products);
   app.use("/api/uploads", uploads);
   app.use("/api/productCats", productCats);
