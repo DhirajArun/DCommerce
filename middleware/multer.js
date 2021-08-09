@@ -24,3 +24,4 @@ const upload = multer({
 });
 
 exports.upload = upload.single("upload");
+exports.uploads = upload.array("upload", 10);
