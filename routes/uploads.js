@@ -11,7 +11,7 @@ router.post(
   "/",
   upload.single("upload"),
   async (req, res) => {
-    console.log(req.body);
+    console.log(req.file, req.body);
     res.send("done");
   },
   (error, req, res, next) => {
