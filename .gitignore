@@ -2,3 +2,4 @@ node_modules
 logFile.log
 unCaughtException.log
 /images
+.env
