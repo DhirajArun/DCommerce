@@ -1,6 +1,5 @@
 {
     "jwtPrivateKey": "unsecureKey",
     "db": "mongodb://localhost:27017/amazon",
-    "jsonWebToken": "thisistoken",
     "host": "localhost:3100"
 }
