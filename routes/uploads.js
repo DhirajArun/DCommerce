@@ -1,8 +1,6 @@
 const express = require("express");
 const { uploads } = require("../middleware/multer");
-
-// var multer = require("multer");
-// var upload = multer({ dest: "images/" });
+const config = require("config");
 
 const router = express.Router();
 
@@ -11,7 +9,7 @@ router.post(
   uploads,
   async (req, res) => {
     const paths = req.files.map((item) => {
-      return item.path;
+      return `${config.get("host")}/${item.path}`;
     });
     res.send(paths);
   },
