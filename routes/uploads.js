@@ -1,15 +1,14 @@
 const express = require("express");
-const multer = require("multer");
+const { upload } = require("../middleware/multer");
 
-const upload = multer({
-  dest: "images/",
-});
+// var multer = require("multer");
+// var upload = multer({ dest: "images/" });
 
 const router = express.Router();
 
 router.post(
   "/",
-  upload.single("upload"),
+  upload,
   async (req, res) => {
     console.log(req.file, req.body);
     res.send("done");
