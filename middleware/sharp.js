@@ -8,6 +8,7 @@ exports.extract = ({ width, height, top, left }) => {
     const newPath = `${path.split(".")[0]}${top}${left}.${path.split(".")[1]}`;
     sharp(path)
       .extract({ width, height, top, left })
+      // .resize({ width: 400, height: 600 })
       .toFile(newPath)
       .then((value) => {
         fs.unlink(path, (err) => {
@@ -17,7 +18,8 @@ exports.extract = ({ width, height, top, left }) => {
         });
         req.file.path = newPath;
         next();
-      });
+      })
+      .catch((err) => next(err));
   };
 };
 
@@ -32,12 +34,13 @@ exports.resize = ({ width, height }) => {
       .toFile(newPath)
       .then((value) => {
         fs.unlink(path, (err) => {
-          if (error) {
+          if (err) {
             winston.error(err.message, err);
           }
         });
         req.file.path = newPath;
         next();
-      });
+      })
+      .catch((err) => next(err));
   };
 };
