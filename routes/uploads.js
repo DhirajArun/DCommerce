@@ -1,13 +1,25 @@
 const express = require("express");
 const { uploads, upload } = require("../middleware/multer");
-const { extract, resize } = require("../middleware/sharp");
+const sharp = require("../middleware/sharp");
 const config = require("config");
 
 const router = express.Router();
 
+const extract = sharp.extract(
+  { width: 500, height: 200, top: 20, left: 25 },
+  {
+    source: (req) => req.file.path,
+    fileName: (req, data) => {
+      const path = req.file.path;
+      const { top, left } = data;
+      return `${path.split(".")[0]}${top}${left}.${path.split(".")[1]}`;
+    },
+  }
+);
+
 router.post(
   "/single",
-  [upload, extract({ width: 900, height: 900, top: 1, left: 1 })],
+  [upload, extract],
   async (req, res) => {
     const path = `${config.get("host")}/${req.file.path}`;
     res.send(path);

@@ -1,46 +1,54 @@
 const sharp = require("sharp");
-const fs = require("fs");
 const winston = require("winston");
 
-exports.extract = ({ width, height, top, left }) => {
+exports.extract = (data, { source, fileName }) => {
   return (req, res, next) => {
-    const path = req.file.path;
-    const newPath = `${path.split(".")[0]}${top}${left}.${path.split(".")[1]}`;
+    const path = source(req);
+    const newPath = fileName(req, data);
+
     sharp(path)
-      .extract({ width, height, top, left })
-      // .resize({ width: 400, height: 600 })
+      .extract(data)
       .toFile(newPath)
       .then((value) => {
-        fs.unlink(path, (err) => {
-          if (err) {
-            winston.error(err.message, err);
-          }
-        });
-        req.file.path = newPath;
+        req.extracted = { path: newPath, ...value };
         next();
       })
       .catch((err) => next(err));
   };
 };
 
-exports.resize = ({ width, height }) => {
+exports.resize = (data, { source, fileName }) => {
   return (req, res, next) => {
-    const path = req.file.path;
-    const newPath = `${path.split(".")[0]}${width}${height}.${
-      path.split(".")[1]
-    }`;
+    const path = source(req);
+
+    const newPath = fileName(req, data);
     sharp(path)
       .resize({ width, height })
       .toFile(newPath)
       .then((value) => {
-        fs.unlink(path, (err) => {
-          if (err) {
-            winston.error(err.message, err);
-          }
-        });
-        req.file.path = newPath;
+        req.resized = { path: newPath, ...value };
         next();
       })
       .catch((err) => next(err));
+  };
+};
+
+exports.createThumbnails = (data, { source, fileName }) => {
+  return (req, res, next) => {
+    const path = source(req);
+
+    const thumbnails = data.map((item) => {
+      const newPath = fileName(req, item);
+      sharp(path)
+        .resize(item)
+        .toFile(newPath)
+        .then((value) => {
+          req.thumbnails = { ...value, path: newPath };
+          next();
+        })
+        .catch((err) => next(err));
+    });
+
+    req.thumbnails = thumbnails;
   };
 };
