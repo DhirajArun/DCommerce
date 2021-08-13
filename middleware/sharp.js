@@ -1,10 +1,10 @@
 const sharp = require("sharp");
-const winston = require("winston");
+const { join } = require("path");
 
-exports.extract = (data, { source, fileName }) => {
+exports.extract = (data, { source, dest, fileName }) => {
   return (req, res, next) => {
     const path = source(req);
-    const newPath = fileName(req, data);
+    const newPath = join(dest(req), fileName(req, data));
 
     sharp(path)
       .extract(data)

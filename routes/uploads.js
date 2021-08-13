@@ -2,30 +2,42 @@ const express = require("express");
 const { uploads, upload } = require("../middleware/multer");
 const sharp = require("../middleware/sharp");
 const config = require("config");
+const tmpdir = require("../middleware/tmpdir");
+
+const winston = require("winston");
 
 const router = express.Router();
 
 const extract = sharp.extract(
   { width: 500, height: 200, top: 20, left: 25 },
   {
-    source: (req) => req.file.path,
+    source: (req) => {
+      return req.file.path;
+    },
+    dest: (req) => {
+      return "images/";
+    },
+
     fileName: (req, data) => {
-      const path = req.file.path;
+      const filename = req.file.filename;
       const { top, left } = data;
-      return `${path.split(".")[0]}${top}${left}.${path.split(".")[1]}`;
+      return `${filename.split(".")[0]}${top}${left}.${filename.split(".")[1]}`;
     },
   }
 );
 
+const imagesTmpDir = tmpdir("images/");
+
 router.post(
   "/single",
-  [upload, extract],
+  [imagesTmpDir, upload, extract, imagesTmpDir],
   async (req, res) => {
-    const path = `${config.get("host")}/${req.file.path}`;
+    const path = `${config.get("host")}/${req.extracted.path}`;
     res.send(path);
   },
   (error, req, res, next) => {
-    res.status(400).send({ error: error.message });
+    winston.error(error.message, error);
+    res.status(400).send(error.message);
   }
 );
 
