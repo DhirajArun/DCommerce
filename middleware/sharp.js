@@ -4,13 +4,14 @@ const { join } = require("path");
 exports.extract = (data, { source, dest, fileName }) => {
   return (req, res, next) => {
     const path = source(req);
-    const newPath = join(dest(req), fileName(req, data));
+    const filename = fileName(req, data);
+    const newPath = join(dest(req), filename);
 
     sharp(path)
       .extract(data)
       .toFile(newPath)
       .then((value) => {
-        req.extracted = { path: newPath, ...value };
+        req.extracted = { filename: filename, path: newPath, ...value };
         next();
       })
       .catch((err) => next(err));
@@ -33,22 +34,27 @@ exports.resize = (data, { source, fileName }) => {
   };
 };
 
-exports.createThumbnails = (data, { source, fileName }) => {
+exports.createThumbnails = (data, { source, dest, fileName }) => {
   return (req, res, next) => {
     const path = source(req);
 
     const thumbnails = data.map((item) => {
-      const newPath = fileName(req, item);
+      const filename = fileName(req, item);
+      const newPath = join(dest(req), filename);
+
+      let thumbnail;
       sharp(path)
         .resize(item)
         .toFile(newPath)
         .then((value) => {
-          req.thumbnails = { ...value, path: newPath };
-          next();
+          thumbnail = { ...value, filename, path: newPath };
         })
         .catch((err) => next(err));
+
+      return thumbnail;
     });
 
     req.thumbnails = thumbnails;
+    next();
   };
 };

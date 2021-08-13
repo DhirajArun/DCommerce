@@ -3,6 +3,7 @@ const { uploads, upload } = require("../middleware/multer");
 const sharp = require("../middleware/sharp");
 const config = require("config");
 const tmpdir = require("../middleware/tmpdir");
+const { getName, getExt } = require("../utils/fileName");
 
 const winston = require("winston");
 
@@ -15,7 +16,7 @@ const extract = sharp.extract(
       return req.file.path;
     },
     dest: (req) => {
-      return "images/";
+      return req.tmpdir;
     },
 
     fileName: (req, data) => {
@@ -26,12 +27,33 @@ const extract = sharp.extract(
   }
 );
 
+const thumb = sharp.createThumbnails(
+  [
+    { width: 720, height: 200 },
+    { width: 1080, height: 400 },
+  ],
+  {
+    source: (req) => {
+      return req.extracted.path;
+    },
+    dest: (req) => {
+      return "images/";
+    },
+    fileName: (req, data) => {
+      return `${getName(req.extracted.filename)}${data.width}${
+        data.height
+      }${getExt(req.extracted.filename)}`;
+    },
+  }
+);
+
 const imagesTmpDir = tmpdir("images/");
 
 router.post(
   "/single",
-  [imagesTmpDir, upload, extract, imagesTmpDir],
+  [imagesTmpDir, upload, extract, thumb, imagesTmpDir],
   async (req, res) => {
+    console.log("upload", req.extracted);
     const path = `${config.get("host")}/${req.extracted.path}`;
     res.send(path);
   },
