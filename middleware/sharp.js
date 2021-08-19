@@ -1,5 +1,6 @@
 const sharp = require("sharp");
-const { join, resolve } = require("path");
+const { join } = require("path");
+const sizeOf = require("image-size");
 
 exports.extract = (data, { source, dest, fileName }) => {
   return async (req, res, next) => {
@@ -7,6 +8,11 @@ exports.extract = (data, { source, dest, fileName }) => {
     const filename = fileName(req, data);
     const newPath = join(dest(req), filename);
 
+    const sourceDimens = sizeOf(path);
+
+    if (sourceDimens.width < data.width || sourceDimens.height < data.width) {
+      return res.status(400).send("width and height of image should be more");
+    }
     try {
       const value = await sharp(path).extract(data).toFile(newPath);
       req.extracted = { filename, path: newPath, ...value };

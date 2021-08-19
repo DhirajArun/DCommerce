@@ -11,7 +11,7 @@ const winston = require("winston");
 const router = express.Router();
 
 const extract = sharp.extract(
-  { width: 500, height: 200, top: 20, left: 25 },
+  { width: 300, height: 300, top: 20, left: 25 },
   {
     source: (req) => {
       return req.file.path;
@@ -64,7 +64,7 @@ const imagesTmpDir = tmpdir("images/");
 
 router.post(
   "/single",
-  [imagesTmpDir, upload, resolutionFilter, extract, thumb, imagesTmpDir],
+  [imagesTmpDir, upload, extract, thumb, imagesTmpDir],
   async (req, res) => {
     const path = `${config.get("host")}/${req.extracted.path}`;
     return res.send(req.thumbnails);
