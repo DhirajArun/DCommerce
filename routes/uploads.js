@@ -4,6 +4,7 @@ const sharp = require("../middleware/sharp");
 const config = require("config");
 const tmpdir = require("../middleware/tmpdir");
 const { getName, getExt } = require("../utils/fileName");
+const imageResolutionFilter = require("../middleware/imageResoultionFilter");
 
 const winston = require("winston");
 
@@ -47,13 +48,24 @@ const thumb = sharp.createThumbnails(
   }
 );
 
+const resolutions = {
+  maxWidth: 720,
+  maxHeight: 578,
+  minWidth: 100,
+  minHeight: 50,
+};
+
+const resolutionFilter = imageResolutionFilter(
+  (req) => req.file.path,
+  resolutions
+);
+
 const imagesTmpDir = tmpdir("images/");
 
 router.post(
   "/single",
-  [imagesTmpDir, upload, extract, thumb, imagesTmpDir],
+  [imagesTmpDir, upload, resolutionFilter, extract, thumb, imagesTmpDir],
   async (req, res) => {
-    console.log("upload", req.thumbnails);
     const path = `${config.get("host")}/${req.extracted.path}`;
     return res.send(req.thumbnails);
   },
