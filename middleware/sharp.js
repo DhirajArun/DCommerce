@@ -39,20 +39,6 @@ exports.createThumbnails = (data, { source, dest, fileName }) => {
 
     req.thumbnails = [];
 
-    // const thumbnails = data.map(async (item) => {
-    //   const filename = fileName(req, item);
-    //   const newPath = join(dest(req), filename);
-
-    //   try {
-    //     const value = await sharp(path).resize(item).toFile(newPath);
-    //     thumbnail = { ...value, filename, path: newPath };
-    //     console.log("sharp-createThumbnail", thumbnail);
-    //     return thumbnail;
-    //   } catch (err) {
-    //     next(err);
-    //   }
-    // });
-
     data.forEach(async (item, index) => {
       const filename = fileName(req, item);
       const newPath = join(dest(req), filename);
@@ -61,25 +47,19 @@ exports.createThumbnails = (data, { source, dest, fileName }) => {
         const value = await sharp(path).resize(item).toFile(newPath);
         thumbnail = { ...value, filename, path: newPath };
         req.thumbnails[index] = thumbnail;
-
-        if (index === data.length - 1) {
-          next();
-        }
+        dummyNext(data.length, next);
       } catch (err) {
         next(err);
       }
     });
-
-    // req.thumbnails = thumbnails;
-    // next();
   };
 };
 
 let counter = 0;
-function dummyNext(stopAt, cb) {
-  if (counter === stopAt) {
+function dummyNext(stopAfter, cb) {
+  counter++;
+  if (counter === stopAfter) {
     cb();
     counter = 0;
   }
-  counter++;
 }

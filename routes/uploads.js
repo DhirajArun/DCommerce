@@ -51,7 +51,7 @@ const imagesTmpDir = tmpdir("images/");
 
 router.post(
   "/single",
-  [imagesTmpDir, upload, extract, thumb],
+  [imagesTmpDir, upload, extract, thumb, imagesTmpDir],
   async (req, res) => {
     console.log("upload", req.thumbnails);
     const path = `${config.get("host")}/${req.extracted.path}`;
