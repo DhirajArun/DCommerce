@@ -1,36 +1,35 @@
 const sharp = require("sharp");
-const { join } = require("path");
+const { join, resolve } = require("path");
 
 exports.extract = (data, { source, dest, fileName }) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const path = source(req);
     const filename = fileName(req, data);
     const newPath = join(dest(req), filename);
 
-    sharp(path)
-      .extract(data)
-      .toFile(newPath)
-      .then((value) => {
-        req.extracted = { filename: filename, path: newPath, ...value };
-        next();
-      })
-      .catch((err) => next(err));
+    try {
+      const value = await sharp(path).extract(data).toFile(newPath);
+      req.extracted = { filename, path: newPath, ...value };
+      next();
+    } catch (err) {
+      next(err);
+    }
   };
 };
 
-exports.resize = (data, { source, fileName }) => {
-  return (req, res, next) => {
+exports.resize = (data, { source, dest, fileName }) => {
+  return async (req, res, next) => {
     const path = source(req);
+    const filename = fileName(req, data);
+    const newPath = join(dest(req), filename);
 
-    const newPath = fileName(req, data);
-    sharp(path)
-      .resize({ width, height })
-      .toFile(newPath)
-      .then((value) => {
-        req.resized = { path: newPath, ...value };
-        next();
-      })
-      .catch((err) => next(err));
+    try {
+      const value = await sharp(path).resize({ width, height }).toFile(newPath);
+      req.resized = { path: newPath, filename, ...value };
+      next();
+    } catch (err) {
+      next(err);
+    }
   };
 };
 
@@ -38,23 +37,49 @@ exports.createThumbnails = (data, { source, dest, fileName }) => {
   return (req, res, next) => {
     const path = source(req);
 
-    const thumbnails = data.map((item) => {
+    req.thumbnails = [];
+
+    // const thumbnails = data.map(async (item) => {
+    //   const filename = fileName(req, item);
+    //   const newPath = join(dest(req), filename);
+
+    //   try {
+    //     const value = await sharp(path).resize(item).toFile(newPath);
+    //     thumbnail = { ...value, filename, path: newPath };
+    //     console.log("sharp-createThumbnail", thumbnail);
+    //     return thumbnail;
+    //   } catch (err) {
+    //     next(err);
+    //   }
+    // });
+
+    data.forEach(async (item, index) => {
       const filename = fileName(req, item);
       const newPath = join(dest(req), filename);
 
-      let thumbnail;
-      sharp(path)
-        .resize(item)
-        .toFile(newPath)
-        .then((value) => {
-          thumbnail = { ...value, filename, path: newPath };
-        })
-        .catch((err) => next(err));
+      try {
+        const value = await sharp(path).resize(item).toFile(newPath);
+        thumbnail = { ...value, filename, path: newPath };
+        req.thumbnails[index] = thumbnail;
 
-      return thumbnail;
+        if (index === data.length - 1) {
+          next();
+        }
+      } catch (err) {
+        next(err);
+      }
     });
 
-    req.thumbnails = thumbnails;
-    next();
+    // req.thumbnails = thumbnails;
+    // next();
   };
 };
+
+let counter = 0;
+function dummyNext(stopAt, cb) {
+  if (counter === stopAt) {
+    cb();
+    counter = 0;
+  }
+  counter++;
+}

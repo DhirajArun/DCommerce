@@ -22,7 +22,7 @@ const extract = sharp.extract(
     fileName: (req, data) => {
       const filename = req.file.filename;
       const { top, left } = data;
-      return `${filename.split(".")[0]}${top}${left}.${filename.split(".")[1]}`;
+      return `${getName(filename)}${top}${left}.${getExt(filename)}`;
     },
   }
 );
@@ -42,7 +42,7 @@ const thumb = sharp.createThumbnails(
     fileName: (req, data) => {
       return `${getName(req.extracted.filename)}${data.width}${
         data.height
-      }${getExt(req.extracted.filename)}`;
+      }.${getExt(req.extracted.filename)}`;
     },
   }
 );
@@ -51,11 +51,11 @@ const imagesTmpDir = tmpdir("images/");
 
 router.post(
   "/single",
-  [imagesTmpDir, upload, extract, thumb, imagesTmpDir],
+  [imagesTmpDir, upload, extract, thumb],
   async (req, res) => {
-    console.log("upload", req.extracted);
+    console.log("upload", req.thumbnails);
     const path = `${config.get("host")}/${req.extracted.path}`;
-    res.send(path);
+    return res.send(req.thumbnails);
   },
   (error, req, res, next) => {
     winston.error(error.message, error);
