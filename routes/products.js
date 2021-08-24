@@ -1,13 +1,17 @@
 const express = require("express");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
+const _ = require("lodash");
 const {
   Product,
   validateProduct,
   productSchema,
 } = require("../models/product");
 const { ProductCat, validateProductCat } = require("../models/productCat");
-const _ = require("lodash");
+
+const filter = require("../middleware/filter");
+const sorting = require("../middleware/sorting");
+const pagination = require("../middleware/pagination");
 
 const router = express.Router();
 
