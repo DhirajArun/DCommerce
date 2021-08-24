@@ -4,6 +4,8 @@ const { productSchema } = require("../models/product");
 module.exports = function (req, res, next) {
   const { sortBy, order } = req.query;
 
+  req.sorting = { sortBy: "_id", order: 1 };
+
   if (sortBy) {
     const error = validateSort(sortBy);
     if (!error) {

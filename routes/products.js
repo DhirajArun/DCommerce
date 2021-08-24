@@ -1,13 +1,6 @@
 const express = require("express");
-const Joi = require("joi");
-Joi.objectId = require("joi-objectid")(Joi);
 const _ = require("lodash");
-const {
-  Product,
-  validateProduct,
-  productSchema,
-} = require("../models/product");
-const { ProductCat, validateProductCat } = require("../models/productCat");
+const { Product, validateProduct } = require("../models/product");
 
 const filter = require("../middleware/filter");
 const sorting = require("../middleware/sorting");
@@ -15,76 +8,11 @@ const pagination = require("../middleware/pagination");
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  let products;
-
-  let filter = {};
-  let sortBy = "_id";
-  let orderBy = 1;
-  let pageSize = 20;
-  let pageNo = 1;
-
-  const {
-    cat: catId,
-    sortBy: qSortBy,
-    orderBy: qOrderBy,
-    pageSize: qPageSize,
-    pageNo: qPageNO,
-  } = req.query;
-
-  //filtering
-  if (catId) {
-    const { error } = validateSingleQuery("cat", catId);
-    if (!error) {
-      const cat = await ProductCat.findOne({ _id: catId });
-      if (cat) {
-        filter.cat = catId;
-      }
-    }
-  }
-
-  // sorting
-  if (qSortBy) {
-    console.log("qSortBy");
-    if (productSchema.path(qSortBy)) {
-      sortBy = qSortBy;
-      console.log("sorted");
-    }
-  }
-
-  //orderBy
-  if (qOrderBy) {
-    const { error } = validateSingleQuery("orderBy", qOrderBy);
-    if (!error) {
-      orderBy = qOrderBy;
-      console.log("ordered");
-    }
-  }
-
-  //pageSize
-  if (qPageSize) {
-    const { error } = validateSingleQuery("pageSize", qPageSize);
-    if (!error) {
-      pageSize = parseInt(qPageSize);
-      console.log("paged");
-    }
-  }
-
-  //pageNo
-  if (qPageNO) {
-    const { error } = validateSingleQuery("pageNo", qPageNO);
-    if (!error) {
-      pageNo = parseInt(qPageNO);
-      console.log("no page");
-    }
-  }
-
-  console.log({ filter, sortBy, orderBy, pageSize, pageNo });
-
-  products = await Product.find(filter)
-    .sort({ [sortBy]: orderBy })
-    .skip((pageNo - 1) * pageSize)
-    .limit(pageSize)
+router.get("/", [filter, sorting, pagination], async (req, res, next) => {
+  const products = await Product.find(req.filter)
+    .sort({ [req.sorting.sortBy]: 1 })
+    .skip((req.pagination.currentPage - 1) * req.pagination.pageSize)
+    .limit(req.pagination.pageSize)
     .select("-__v");
 
   res.send(products);
@@ -123,17 +51,5 @@ router.delete("/:id", async (req, res) => {
   if (!product) return res.status(404).send("no such product");
   res.send(product);
 });
-
-const querySchema = {
-  cat: Joi.objectId(),
-  sortBy: Joi.string().min(1),
-  orderBy: Joi.number().valid(1, -1),
-  pageSize: Joi.number().integer().min(1).max(100),
-  pageNo: Joi.number().integer().min(1),
-};
-
-function validateSingleQuery(sq, data) {
-  return querySchema[sq].validate(data);
-}
 
 module.exports = router;
