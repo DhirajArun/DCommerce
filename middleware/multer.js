@@ -24,5 +24,9 @@ const upload = multer({
   limits: { fileSize: 10000000 }, // 10 mega byte
 });
 
-exports.upload = upload.single("upload");
-exports.uploads = upload.array("upload", 10);
+const uploadOne = upload.single("upload");
+const uploadMany = upload.array("upload", 10);
+
+module.exports = (req, res, next) => {
+  if (req.params.dest === "product") uploadOne(req, res, next);
+};

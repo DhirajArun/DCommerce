@@ -3,7 +3,7 @@ const { join } = require("path");
 const fs = require("fs");
 const removeDir = require("../utils/removeDir");
 
-module.exports = function (path) {
+const tmp = function (path) {
   return function (req, res, next) {
     const dir = join(tmpdir(), path);
 
@@ -27,3 +27,5 @@ module.exports = function (path) {
     }
   };
 };
+
+module.exports = tmp("images/");
