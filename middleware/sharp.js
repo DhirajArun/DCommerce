@@ -23,22 +23,6 @@ exports.extract = (data, { source, dest, fileName }) => {
   };
 };
 
-exports.resize = (data, { source, dest, fileName }) => {
-  return async (req, res, next) => {
-    const path = source(req);
-    const filename = fileName(req, data);
-    const newPath = join(dest(req), filename);
-
-    try {
-      const value = await sharp(path).resize({ width, height }).toFile(newPath);
-      req.resized = { path: newPath, filename, ...value };
-      next();
-    } catch (err) {
-      next(err);
-    }
-  };
-};
-
 exports.createThumbnails = (data, { source, dest, fileName }) => {
   return (req, res, next) => {
     const path = source(req);
