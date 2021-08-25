@@ -33,7 +33,7 @@ exports.extract = (data, { source, dest, fileName }) => {
 };
 
 exports.createThumbnails = (input, { source, dest, fileName }) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     let data;
     if (typeof input == "function") {
       data = input(req);
@@ -42,29 +42,27 @@ exports.createThumbnails = (input, { source, dest, fileName }) => {
     }
 
     const path = source(req);
-    req.thumbnails = [];
+    let thumbnails = [];
 
-    data.forEach(async (item, index) => {
+    data.forEach((item, index) => {
       const filename = fileName(req, item);
       const newPath = join(dest(req), filename);
 
-      try {
-        const value = await sharp(path).resize(item).toFile(newPath);
-        thumbnail = { ...value, filename, path: newPath };
-        req.thumbnails[index] = thumbnail;
-        dummyNext(data.length, next);
-      } catch (err) {
-        next(err);
-      }
+      thumbnails[index] = new Promise(async (resolve, reject) => {
+        try {
+          const value = await sharp(path).resize(item).toFile(newPath);
+          resolve({ ...value, filename, path: newPath });
+        } catch (err) {
+          reject(err.message);
+        }
+      });
     });
+
+    try {
+      req.thumbnails = await Promise.all(thumbnails);
+      next();
+    } catch (err) {
+      next(err);
+    }
   };
 };
-
-let counter = 0;
-function dummyNext(stopAfter, cb) {
-  counter++;
-  if (counter === stopAfter) {
-    cb();
-    counter = 0;
-  }
-}
