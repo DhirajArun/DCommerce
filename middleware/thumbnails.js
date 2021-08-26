@@ -2,7 +2,7 @@ const sharp = require("sharp");
 const { getName, getExt } = require("../utils/fileName");
 const { join } = require("path");
 
-function populateData(input) {
+function populateData(input, req) {
   if (typeof input === "function") {
     return input(req);
   } else {
@@ -12,7 +12,7 @@ function populateData(input) {
 
 const createThumbnails = (input, { source, dest, fileName }) => {
   return async (req, res, next) => {
-    let data = populateData(input);
+    let data = populateData(input, req);
 
     const path = source(req);
     let thumbnails = [];

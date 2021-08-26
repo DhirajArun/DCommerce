@@ -3,14 +3,29 @@ const { join } = require("path");
 const sizeOf = require("image-size");
 const { getName, getExt } = require("../utils/fileName");
 const Joi = require("joi");
+const _ = require("lodash");
 
-function populateData(body) {
-  return {
-    width: parseInt(req.body.width),
-    height: parseInt(req.body.height),
-    top: parseInt(req.body.top),
-    left: parseInt(req.body.left),
-  };
+function populateData(incomingData, body) {
+  let data;
+  let error = undefined;
+  if (!incomingData) {
+    error = dataSchema.validate(
+      _.pick(body, ["width", "height", "top", "left"])
+    ).error;
+
+    data = {
+      width: parseInt(body.width),
+      height: parseInt(body.height),
+      top: parseInt(body.top),
+      left: parseInt(body.left),
+    };
+  } else {
+    data = incomingData;
+    error = dataSchema.validate(incomingData).error;
+  }
+
+  if (error) throw new Error(error.details[0].message);
+  return data;
 }
 
 const dataSchema = Joi.object({
@@ -20,22 +35,19 @@ const dataSchema = Joi.object({
   left: Joi.number().integer().min(0).required(),
 });
 
-const extract = (data, { source, dest, fileName }) => {
+const extract = (incomingData, { source, dest, fileName }) => {
   return async (req, res, next) => {
-    if (!data) data = populateData(req.body);
+    let data = populateData(incomingData, req.body); // also validating
 
     const path = source(req);
     const filename = fileName(req, data);
     const newPath = join(dest(req), filename);
 
-    const { error } = dataSchema.validate(data);
-    if (error) return res.status(400).send(error.details[0].message);
-
     const sourceDimens = sizeOf(path);
-    const isCorrectDimens =
+    const isWrongDimens =
       sourceDimens.width < data.width || sourceDimens.height < data.width;
-    if (isCorrectDimens) {
-      return res.status(400).send("width and height of image should be more");
+    if (isWrongDimens) {
+      throw new Error("width and height of image should be more");
     }
 
     try {
