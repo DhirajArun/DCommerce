@@ -35,4 +35,5 @@ function validateProduct(data) {
 const Product = mongoose.model("products", productSchema);
 
 exports.Product = Product;
+exports.productSchema = productSchema;
 exports.validateProduct = validateProduct;

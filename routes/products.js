@@ -1,20 +1,25 @@
 const express = require("express");
-const { Product, validateProduct } = require("../models/product");
 const _ = require("lodash");
+const { Product, validateProduct } = require("../models/product");
+
+const filter = require("../middleware/filter");
+const sorting = require("../middleware/sorting");
+const pagination = require("../middleware/pagination");
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  try {
-    const products = await Product.find();
-    res.send(products);
-  } catch (ex) {
-    next(ex);
-  }
+router.get("/", [filter, sorting, pagination], async (req, res, next) => {
+  const products = await Product.find(req.filter)
+    .sort({ [req.sorting.sortBy]: 1 })
+    .skip((req.pagination.currentPage - 1) * req.pagination.pageSize)
+    .limit(req.pagination.pageSize)
+    .select("-__v");
+
+  res.send(products);
 });
 
 router.get("/:id", async (req, res, next) => {
-  const product = await Product.findOne({ _id: req.params.id });
+  const product = await Product.findOne({ _id: req.params.id }).select("-__v");
   if (!product) return res.status(404).send("no product found");
   res.send(product);
 });
