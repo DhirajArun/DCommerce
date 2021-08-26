@@ -2,14 +2,17 @@ const sharp = require("sharp");
 const { getName, getExt } = require("../utils/fileName");
 const { join } = require("path");
 
+function populateData(input) {
+  if (typeof input === "function") {
+    return input(req);
+  } else {
+    return input;
+  }
+}
+
 const createThumbnails = (input, { source, dest, fileName }) => {
   return async (req, res, next) => {
-    let data;
-    if (typeof input == "function") {
-      data = input(req);
-    } else {
-      data = input;
-    }
+    let data = populateData(input);
 
     const path = source(req);
     let thumbnails = [];

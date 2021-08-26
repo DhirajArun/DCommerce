@@ -2,24 +2,39 @@ const sharp = require("sharp");
 const { join } = require("path");
 const sizeOf = require("image-size");
 const { getName, getExt } = require("../utils/fileName");
+const Joi = require("joi");
+
+function populateData(body) {
+  return {
+    width: parseInt(req.body.width),
+    height: parseInt(req.body.height),
+    top: parseInt(req.body.top),
+    left: parseInt(req.body.left),
+  };
+}
+
+const dataSchema = Joi.object({
+  width: Joi.number().integer().min(0).required(),
+  height: Joi.number().integer().min(0).required(),
+  top: Joi.number().integer().min(0).required(),
+  left: Joi.number().integer().min(0).required(),
+});
 
 const extract = (data, { source, dest, fileName }) => {
   return async (req, res, next) => {
-    if (data == null)
-      data = {
-        width: parseInt(req.body.width),
-        height: parseInt(req.body.height),
-        top: parseInt(req.body.top),
-        left: parseInt(req.body.left),
-      };
+    if (!data) data = populateData(req.body);
 
     const path = source(req);
     const filename = fileName(req, data);
     const newPath = join(dest(req), filename);
 
-    const sourceDimens = sizeOf(path);
+    const { error } = dataSchema.validate(data);
+    if (error) return res.status(400).send(error.details[0].message);
 
-    if (sourceDimens.width < data.width || sourceDimens.height < data.width) {
+    const sourceDimens = sizeOf(path);
+    const isCorrectDimens =
+      sourceDimens.width < data.width || sourceDimens.height < data.width;
+    if (isCorrectDimens) {
       return res.status(400).send("width and height of image should be more");
     }
 
