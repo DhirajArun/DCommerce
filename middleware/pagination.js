@@ -1,8 +1,9 @@
 const Joi = require("joi");
+const config = require("config");
 
 module.exports = function (req, res, next) {
   const { currentPage } = req.query;
-  const pageSize = 10;
+  const pageSize = config.get("productPageSize");
 
   req.pagination = { currentPage: 1, pageSize };
 
