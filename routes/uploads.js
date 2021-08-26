@@ -4,6 +4,7 @@ const upload = require("../middleware/multer");
 const tmpdir = require("../middleware/tmpdir");
 const extract = require("../middleware/extract");
 const thumbnails = require("../middleware/thumbnails");
+const config = require("config");
 
 const router = express.Router();
 
@@ -11,7 +12,10 @@ router.post(
   "/:dest",
   [tmpdir, upload, extract, thumbnails, tmpdir],
   async (req, res) => {
-    return res.send(req.thumbnails);
+    const paths = req.thumbnails.map(
+      (item) => `${config.get("host")}/${item.path}`
+    );
+    return res.send(paths);
   },
   (error, req, res, next) => {
     winston.error(error.message, error);
