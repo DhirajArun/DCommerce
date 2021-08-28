@@ -6,6 +6,7 @@ const error = require("../middleware/error");
 const productCats = require("../routes/productCats");
 const cors = require("cors");
 const uploads = require("../routes/uploads");
+const otp = require("../routes/otp");
 
 module.exports = function (app) {
   app.use(
@@ -20,5 +21,6 @@ module.exports = function (app) {
   app.use("/api/productCats", productCats);
   app.use("/api/users", users);
   app.use("/api/auth", auth);
+  app.use("/api/otp", otp);
   app.use(error);
 };
