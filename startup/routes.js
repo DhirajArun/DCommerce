@@ -1,4 +1,5 @@
 const express = require("express");
+const helmet = require("helmet");
 const products = require("../routes/products");
 const users = require("../routes/users");
 const auth = require("../routes/auth");
@@ -14,6 +15,7 @@ module.exports = function (app) {
       origin: "http://localhost:3000",
     })
   );
+  app.use(helmet());
   app.use(express.json());
   app.use("/images", express.static("images/"));
   app.use("/api/products", products);
