@@ -1,8 +1,9 @@
 const { OTP } = require("../models/otp");
 const otpGenerator = require("otp-generator");
-const { encode } = require("../middleware/crypt");
+const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
+const moment = require("moment");
 
 const clientId =
   "674763652682-5hlm5jo8cglvusp5vrnjrlbmodm2e143.apps.googleusercontent.com";
@@ -50,7 +51,7 @@ router.post("/", async (req, res, next) => {
     email,
   };
 
-  const encoded = encode(JSON.stringify(otpDetails));
+  const encoded = jwt.sign(otpDetails, process.env["JWT_KEY"]);
 
   //sending the mail
 
@@ -82,10 +83,42 @@ router.post("/", async (req, res, next) => {
   } catch (error) {
     res.status(500).send({ status: "failure", error });
   }
+});
 
-  //sending response
+router.post("/verify/", async (req, res, next) => {
+  const { otp, key, email } = req.body;
 
-  // res.send({ status: "success", details: encoded });
+  if (!otp) return res.status(400).send("otp not provided");
+  if (!key) return res.status(400).send("key not provided");
+  if (!email) return res.status(400).send("email not provided");
+
+  let otpDetails;
+  try {
+    otpDetails = jwt.verify(key, process.env["JWT_KEY"]);
+    console.log(otpDetails);
+  } catch (err) {
+    res.status(400).details("wrong key provided");
+  }
+
+  //email checking
+  if (!otpDetails.email == email)
+    return res.status(400).send("wrong email provided");
+
+  //otp validity and otp checking
+  try {
+    const otpDoc = await OTP.find({ _id: otpDetails.otpId });
+
+    //isValid
+    const isValid = moment().isBefore(moment(otpDoc.expireAt));
+    if (!isValid) return res.status(400).send("otp expired");
+
+    //isCorectOtp
+    if (otpDoc.otp !== otp) return res.status(400).send("wrong otp provided");
+  } catch (err) {
+    return res.status(400).send("wrong key provided");
+  }
+
+  res.send({ status: "success" });
 });
 
 module.exports = router;
