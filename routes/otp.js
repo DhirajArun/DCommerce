@@ -74,6 +74,10 @@ router.post("/verify/", async (req, res, next) => {
     return res.status(400).send("wrong key provided");
   }
 
+  await OTP.updateOne(
+    { _id: otpDetails.otpId },
+    { $set: { isVerified: true } }
+  );
   res.send({ status: "success" });
 });
 
