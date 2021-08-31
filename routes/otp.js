@@ -74,8 +74,8 @@ router.post("/verify/", async (req, res, next) => {
   if (!otpDoc._id) return res.status(400).send("NO such otpId exists");
 
   //isValid -expiry
-  const isValid = moment().isBefore(otpDoc.expireAt);
-  if (!isValid) return res.status(400).send("otp expired");
+  // const isValid = moment().isBefore(otpDoc.expireAt);
+  // if (!isValid) return res.status(400).send("otp expired");
 
   //isCorectOtp provided
   if (otpDoc.otp != otp) return res.status(400).send("wrong otp provided");
@@ -87,7 +87,6 @@ router.post("/verify/", async (req, res, next) => {
   );
 
   // doing and sending response based on type
-  console.log(otpDetails);
   if (otpDetails.type === "verify") {
     const { n, nModified } = await User.updateOne(
       { email: otpDetails.email },
@@ -98,10 +97,13 @@ router.post("/verify/", async (req, res, next) => {
     else if (n === 1) {
       return res.send("It is already verified");
     }
+  } else if (otpDetails.type === "login") {
+    const user = await User.findOne({ email: otpDetails.email });
+    const token = user.generateAuthToken();
+    return res.send({ status: "success", token });
+  } else if (otpDetails.type == "reset") {
+    res.send({ status: "success" });
   }
-
-  //sending the success resoponse
-  res.send({ status: "success" });
 });
 
 module.exports = router;
