@@ -18,8 +18,8 @@ router.post("/", async (req, res, next) => {
   if (error) return res.status(400).send(error.details[0].message);
 
   //is user available with this email
-  const user = User.findOne({ email });
-  if (!user.email) return res.status(400).send("no such user with this email");
+  const user = await User.findOne({ email: email });
+  if (!user) return res.status(400).send("no such user with this email");
 
   //generate otp
   const otp = generate();
@@ -43,7 +43,7 @@ router.post("/", async (req, res, next) => {
   try {
     const result = await sendOTP({
       otp,
-      to: "msvinitakri@gmail.com",
+      to: email,
       type,
     });
     res.send({ status: "success", details: encoded, result });
