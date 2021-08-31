@@ -35,6 +35,7 @@ router.post("/", async (req, res, next) => {
   const otpDetails = {
     otpId: otpDoc._id,
     email,
+    type,
   };
 
   const encoded = jwt.sign(otpDetails, process.env["JWT_KEY"]);
@@ -79,11 +80,25 @@ router.post("/verify/", async (req, res, next) => {
   //isCorectOtp provided
   if (otpDoc.otp != otp) return res.status(400).send("wrong otp provided");
 
-  //updating the isVerified to true
+  //updating the otp -- isVerified to true
   await OTP.updateOne(
     { _id: otpDetails.otpId },
     { $set: { isVerified: true } }
   );
+
+  // doing and sending response based on type
+  console.log(otpDetails);
+  if (otpDetails.type === "verify") {
+    const { n, nModified } = await User.updateOne(
+      { email: otpDetails.email },
+      { $set: { isEmailVerified: true } }
+    );
+    if (nModified === 1)
+      return res.send({ status: "success", isEmailVerified: true });
+    else if (n === 1) {
+      return res.send("It is already verified");
+    }
+  }
 
   //sending the success resoponse
   res.send({ status: "success" });
