@@ -1,23 +1,25 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
 
-const otpSchema = new mongoose.Schema(
-  {
-    otp: {
-      type: String,
-      required: true,
-    },
-    expireAt: {
-      type: Date,
-      required: true,
-    },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
+const otpSchema = new mongoose.Schema({
+  otp: {
+    type: String,
+    required: true,
   },
-  { timestamps: true }
-);
+  expireAt: {
+    type: Date,
+    required: true,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    expires: 10 * 60,
+  },
+});
 
 function validateOtp(data) {
   const schema = Joi.object({
