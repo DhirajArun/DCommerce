@@ -60,24 +60,24 @@ router.post("/verify/", async (req, res, next) => {
   if (!otpDetails.email == email)
     return res.status(400).send("wrong email provided");
 
-  //otp validity and otp checking
-  try {
-    const otpDoc = await OTP.find({ _id: otpDetails.otpId });
+  //geting otp doc from db and validating
+  const otpDoc = await OTP.findOne({ _id: otpDetails.otpId });
+  if (!otpDoc) return res.status(400).send("Wrong key provided");
 
-    //isValid
-    const isValid = moment().isBefore(moment(otpDoc.expireAt));
-    if (!isValid) return res.status(400).send("otp expired");
+  //isValid -expiry
+  const isValid = moment().isBefore(otpDoc.expireAt);
+  if (!isValid) return res.status(400).send("otp expired");
 
-    //isCorectOtp
-    if (otpDoc.otp !== otp) return res.status(400).send("wrong otp provided");
-  } catch (err) {
-    return res.status(400).send("wrong key provided");
-  }
+  //isCorectOtp provided
+  if (otpDoc.otp != otp) return res.status(400).send("wrong otp provided");
 
+  //updating the isVerified to true
   await OTP.updateOne(
     { _id: otpDetails.otpId },
     { $set: { isVerified: true } }
   );
+
+  //sending the success resoponse
   res.send({ status: "success" });
 });
 
