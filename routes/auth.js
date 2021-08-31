@@ -14,6 +14,7 @@ router.post("/", async (req, res) => {
   if (req.body.email) {
     user = await User.findOne({ email: req.body.email });
     if (!user) return res.status(400).send("username or password is incorrect");
+    if (!user.isEmailVerified) res.status(401).send("email is not verified");
   } else {
     user = await User.findOne({ phone: req.body.phone });
     if (!user) return res.status(400).send("username or password is incorrect");
