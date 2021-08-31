@@ -28,6 +28,14 @@ const userSchema = new mongoose.Schema({
     min: 6,
     max: 1024,
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  isPhoneVerified: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 userSchema.methods.generateAuthToken = function () {
