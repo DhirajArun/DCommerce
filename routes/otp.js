@@ -75,8 +75,8 @@ router.post("/verify/", async (req, res, next) => {
   if (otpDoc.isVerified) return res.status(400).send("otp already verified");
 
   //isValid -expiry
-  // const isValid = moment().isBefore(otpDoc.expireAt);
-  // if (!isValid) return res.status(400).send("otp expired");
+  const isValid = moment().isBefore(otpDoc.expireAt);
+  if (!isValid) return res.status(400).send("otp expired");
 
   //isCorectOtp provided
   if (otpDoc.otp != otp) return res.status(400).send("wrong otp provided");
