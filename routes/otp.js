@@ -65,7 +65,7 @@ router.post("/verify/", async (req, res, next) => {
 
   //geting otp doc from db and validating
   const otpDoc = await OTP.findOne({ _id: otpDetails.otpId });
-  if (!otpDoc) return res.status(400).send("Wrong key provided");
+  if (!otpDoc) return res.status(400).send("NO such otpId exists");
 
   //isValid -expiry
   const isValid = moment().isBefore(otpDoc.expireAt);
