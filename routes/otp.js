@@ -4,6 +4,7 @@ const moment = require("moment");
 const { sendOTP } = require("../functions/nodemailer");
 const { generate } = require("../functions/otp");
 const { OTP, validateOtp, validateOtpVerification } = require("../models/otp");
+const { User } = require("../models/user");
 
 const router = require("express").Router();
 
@@ -15,6 +16,10 @@ router.post("/", async (req, res, next) => {
   const { email, type } = req.body;
   const { error } = validateOtp({ email, type });
   if (error) return res.status(400).send(error.details[0].message);
+
+  //is user available with this email
+  const user = User.find({ email });
+  if (!user) res.status(400).send("no such user with this email");
 
   //generate otp
   const otp = generate();
