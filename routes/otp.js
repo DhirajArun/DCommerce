@@ -72,6 +72,7 @@ router.post("/verify/", async (req, res, next) => {
   //geting otp doc from db and validating
   const otpDoc = await OTP.findOne({ _id: otpDetails.otpId });
   if (!otpDoc._id) return res.status(400).send("NO such otpId exists");
+  if (otpDoc.isVerified) return res.status(400).send("otp already verified");
 
   //isValid -expiry
   // const isValid = moment().isBefore(otpDoc.expireAt);
