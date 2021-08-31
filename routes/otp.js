@@ -12,8 +12,10 @@ function addMinutesToDate(date, minute) {
 }
 
 router.post("/", async (req, res, next) => {
-  const { email } = req.body;
+  const { email, type } = req.body;
   if (!email) return res.status(400).send("no email provided");
+
+  if (!type) return res.status(400).send("type not provided");
 
   //generate otp
   const otp = generate();
@@ -35,7 +37,11 @@ router.post("/", async (req, res, next) => {
 
   //sending the mail
   try {
-    const result = await sendOTP({ otp, to: "msvinitakri@gmail.com" });
+    const result = await sendOTP({
+      otp,
+      to: "msvinitakri@gmail.com",
+      type,
+    });
     res.send({ status: "success", details: encoded, result });
   } catch (error) {
     res.status(500).send({ status: "failure", error });

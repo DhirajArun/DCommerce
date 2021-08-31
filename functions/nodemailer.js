@@ -36,18 +36,42 @@ async function getTransporter() {
 }
 
 let transporter;
-async function sendOTP({ otp, to }) {
+async function sendOTP({ otp, to, type }) {
   if (!transporter) transporter = await getTransporter();
 
   const mailOption = {
     from: '"Dhiraj Arun" "<dhrjarun@gmail.com>"',
     to,
-    subject: "OTP",
-    text: `your otp is ${otp}.`,
+    subject: genrateSubject(type),
+    text: genrateMessage(otp, type),
   };
 
   const result = await transporter.sendMail(mailOption);
   return result;
+}
+
+function genrateMessage(otp, type) {
+  if (type === "verify") {
+    return `Dear user,\nOTP for your email verification is: \n${otp}\n\nThis is auto generated email. please do not reply.\n\nRegards\nDhiraj Arun\n`;
+  }
+  if (type === "reset") {
+    return `Dear user,\nOTP for reset password is: \n${otp}\n\nThis is auto generated email. please do not reply.\n\nRegards\nDhiraj Arun\n`;
+  }
+  if (type === "login") {
+    return `Dear user,\nOTP for login is: \n${otp}\n\nThis is auto generated email. please do not reply.\n\nRegards\nDhiraj Arun\n`;
+  }
+}
+
+function genrateSubject(type) {
+  if (type === "verify") {
+    return "OTP for Verification";
+  }
+  if (type === "reset") {
+    return "OTP for resetting password";
+  }
+  if (type === "login") {
+    return "OTP for login";
+  }
 }
 
 exports.getTransporter = getTransporter;
