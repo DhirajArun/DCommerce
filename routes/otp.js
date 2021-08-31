@@ -1,9 +1,9 @@
-const { OTP } = require("../models/otp");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
 
 const { sendOTP } = require("../functions/nodemailer");
 const { generate } = require("../functions/otp");
+const { OTP, validateOtp, validateOtpVerification } = require("../models/otp");
 
 const router = require("express").Router();
 
@@ -13,9 +13,8 @@ function addMinutesToDate(date, minute) {
 
 router.post("/", async (req, res, next) => {
   const { email, type } = req.body;
-  if (!email) return res.status(400).send("no email provided");
-
-  if (!type) return res.status(400).send("type not provided");
+  const { error } = validateOtp({ email, type });
+  if (error) return res.status(400).send(error.details[0].message);
 
   //generate otp
   const otp = generate();
@@ -50,10 +49,8 @@ router.post("/", async (req, res, next) => {
 
 router.post("/verify/", async (req, res, next) => {
   const { otp, key, email } = req.body;
-
-  if (!otp) return res.status(400).send("otp not provided");
-  if (!key) return res.status(400).send("key not provided");
-  if (!email) return res.status(400).send("email not provided");
+  const { error } = validateOtpVerification({ otp, key, email });
+  if (error) return res.status(400).send(error.details[0].message);
 
   let otpDetails;
   try {
