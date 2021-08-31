@@ -18,8 +18,8 @@ router.post("/", async (req, res, next) => {
   if (error) return res.status(400).send(error.details[0].message);
 
   //is user available with this email
-  const user = User.find({ email });
-  if (!user) res.status(400).send("no such user with this email");
+  const user = User.findOne({ email });
+  if (!user.email) return res.status(400).send("no such user with this email");
 
   //generate otp
   const otp = generate();
@@ -70,7 +70,7 @@ router.post("/verify/", async (req, res, next) => {
 
   //geting otp doc from db and validating
   const otpDoc = await OTP.findOne({ _id: otpDetails.otpId });
-  if (!otpDoc) return res.status(400).send("NO such otpId exists");
+  if (!otpDoc._id) return res.status(400).send("NO such otpId exists");
 
   //isValid -expiry
   const isValid = moment().isBefore(otpDoc.expireAt);
