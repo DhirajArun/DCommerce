@@ -8,10 +8,6 @@ const { getPasswordResetLink } = require("../functions/auth");
 
 const router = require("express").Router();
 
-function addMinutesToDate(date, minute) {
-  return new Date(date.getTime() + minute * 60000);
-}
-
 router.post("/", async (req, res, next) => {
   const { email, type } = req.body;
   const { error } = validateOtp({ email, type });
@@ -25,10 +21,7 @@ router.post("/", async (req, res, next) => {
   const otp = generate();
 
   //putting otp in database
-  const time = new Date();
-  const otpValidity = 10; // in minute
-  const expireAt = addMinutesToDate(time, otpValidity);
-  const otpDoc = new OTP({ otp, expireAt });
+  const otpDoc = new OTP({ otp });
   await otpDoc.save();
 
   //creating encrypted details to send
@@ -71,12 +64,8 @@ router.post("/verify/", async (req, res, next) => {
 
   //geting otp doc from db and validating
   const otpDoc = await OTP.findOne({ _id: otpDetails.otpId });
-  if (!otpDoc) return res.status(400).send("otp expired");
+  if (!otpDoc) return res.status(400).send("otp is wrong or expired");
   if (otpDoc.isVerified) return res.status(400).send("otp already verified");
-
-  //isValid -expiry
-  const isValid = moment().isBefore(otpDoc.expireAt);
-  if (!isValid) return res.status(400).send("otp expired");
 
   //isCorectOtp provided
   if (otpDoc.otp != otp) return res.status(400).send("wrong otp provided");
