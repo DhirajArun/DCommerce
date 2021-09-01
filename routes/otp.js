@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
-
 const { sendOTP } = require("../functions/nodemailer");
 const { generate } = require("../functions/otp");
 const { OTP, validateOtp, validateOtpVerification } = require("../models/otp");
 const { User } = require("../models/user");
+const { getPasswordResetLink } = require("../functions/auth");
 
 const router = require("express").Router();
 
@@ -71,7 +71,7 @@ router.post("/verify/", async (req, res, next) => {
 
   //geting otp doc from db and validating
   const otpDoc = await OTP.findOne({ _id: otpDetails.otpId });
-  if (!otpDoc._id) return res.status(400).send("NO such otpId exists");
+  if (!otpDoc) return res.status(400).send("otp expired");
   if (otpDoc.isVerified) return res.status(400).send("otp already verified");
 
   //isValid -expiry
@@ -103,7 +103,8 @@ router.post("/verify/", async (req, res, next) => {
     const token = user.generateAuthToken();
     return res.send({ status: "success", token });
   } else if (otpDetails.type == "reset") {
-    res.send({ status: "success" });
+    const resetLink = await getPasswordResetLink(otpDetails.email);
+    res.send({ status: "success", resetLink });
   }
 });
 

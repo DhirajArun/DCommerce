@@ -1,7 +1,8 @@
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
-const Token = require("../models/token");
-const User = require("../models/user");
+const { Token } = require("../models/token");
+const { User } = require("../models/user");
+const config = require("config");
 
 async function getPasswordResetLink(email) {
   const user = await User.findOne({ email });
@@ -15,6 +16,10 @@ async function getPasswordResetLink(email) {
 
   await new Token({ userId: user._id, token: hash }).save();
 
-  const link = `${host}/passwordReset?token=${resetToken}&id=${user._id}`;
+  const link = `${config.get("host")}/passwordReset?token=${resetToken}&id=${
+    user._id
+  }`;
   return link;
 }
+
+exports.getPasswordResetLink = getPasswordResetLink;
